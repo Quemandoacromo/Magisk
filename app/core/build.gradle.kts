@@ -19,6 +19,7 @@ android {
         buildConfigField("int", "APP_VERSION_CODE", "${Config.versionCode}")
         buildConfigField("String", "APP_VERSION_NAME", "\"${Config.version}\"")
         buildConfigField("int", "STUB_VERSION", Config.stubVersion)
+        consumerProguardFile("proguard-rules.pro")
     }
 
     buildFeatures {
@@ -59,5 +60,10 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.collection.ktx)
     implementation(libs.profileinstaller)
-    implementation(libs.lifecycle.process)
+
+    // We also implement all our tests in this module.
+    // However, we don't want to bundle test dependencies.
+    // That's why we make it compileOnly.
+    compileOnly(libs.test.junit)
+    compileOnly(libs.test.uiautomator)
 }

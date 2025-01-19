@@ -1,15 +1,6 @@
 name: Magisk Build
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - "app/**"
-      - "native/**"
-      - "buildSrc/**"
-      - "build.py"
-      - "gradle.properties"
-      - ".github/workflows/build.yml"
   pull_request:
     branches: [master]
   workflow_dispatch:
@@ -17,9 +8,7 @@ on:
 jobs:
   build:
     name: Build Magisk artifacts
-    runs-on: macos-14
-    env:
-      SCCACHE_DIRECT: false
+    runs-on: macos-15
     strategy:
       fail-fast: false
     steps:
@@ -27,7 +16,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
-          fetch-depth: 0
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -60,18 +48,15 @@ jobs:
   test-build:
     name: Test building on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    env:
-      SCCACHE_DIRECT: false
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-2025, ubuntu-24.04]
     steps:
       - name: Check out
         uses: actions/checkout@v4
         with:
           submodules: "recursive"
-          fetch-depth: 0
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -84,22 +69,22 @@ jobs:
 
   avd-test:
     name: Test API ${{ matrix.version }} (x86_64)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     strategy:
       fail-fast: false
       matrix:
-        version: [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34]
+        version: [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
         type: [""]
         include:
-          - version: 35
+          - version: "Baklava"
             type: "google_apis"
+          - version: "Baklava"
+            type: "google_apis_ps16k"
 
     steps:
       - name: Check out
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -130,7 +115,7 @@ jobs:
 
   avd-test-32:
     name: Test API ${{ matrix.version }} (x86)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     strategy:
       fail-fast: false
@@ -140,8 +125,6 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -171,7 +154,7 @@ jobs:
             kernel.log
             logcat.log
 
-  cf_test:
+  cf-test:
     name: Test ${{ matrix.device }}
     runs-on: ubuntu-24.04
     needs: build
@@ -183,14 +166,10 @@ jobs:
         include:
           - branch: "aosp-main"
             device: "aosp_cf_x86_64_phone"
-          - branch: "aosp-main-throttled"
-            device: "aosp_cf_x86_64_phone_pgagnostic"
 
     steps:
       - name: Check out
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
